@@ -1,0 +1,10 @@
+# Isolated from the translator: install into .venv-tts.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.11.0+cpu
+diffusers==0.25.0
+huggingface-hub==0.25.2
+omegaconf==2.3.0
+einops==0.8.1
+conformer==0.3.2
+numpy>=2,<3
+regex>=2024.5

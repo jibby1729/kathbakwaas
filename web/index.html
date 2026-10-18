@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf7ef">
+  <meta name="description" content="English to Kashmiri translator.">
+  <title>Kath Bakwaas · English to Kashmiri</title>
+  <link rel="icon" href="/static/flower.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/styles.css?v=20261018-speech">
+  <script src="/static/speech.js?v=20261018-loading" defer></script>
+  <script src="/static/app.js?v=20261018-speech" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#english">Skip to translator</a>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Kath Bakwaas home">
+      <img src="/static/flower.svg" width="46" height="46" alt="">
+      <span>Kath Bakwaas</span>
+    </a>
+    <nav aria-label="Page controls">
+      <button class="text-size quiet-button" id="text-size" type="button" aria-label="Bigger text" aria-pressed="false"><span class="size-icon" aria-hidden="true">A<span>A</span></span><span>Bigger text</span></button>
+      <button class="quiet-button" id="about-open" type="button">About</button>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="sr-only">English to Kashmiri translator</h1>
+    <section class="translator-section" aria-label="English to Kashmiri translator">
+      <div class="translator-topline">
+        <span class="connection" id="connection"><span class="connection-dot"></span><span id="connection-text">Connecting…</span></span>
+      </div>
+      <div class="translator-card">
+        <div class="language-panel input-panel">
+          <div class="panel-heading">
+            <label for="english" class="language-name">English</label>
+            <button id="clear" class="icon-button" type="button" aria-label="Clear English text" title="Clear text" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
+          </div>
+          <textarea id="english" placeholder="Type in English…" maxlength="500" spellcheck="true" autocapitalize="sentences" aria-describedby="character-count typing-help"></textarea>
+          <div class="panel-bottom">
+            <button id="paste" class="utility-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H6a2 2 0 0 0-2 2v13h14V7a2 2 0 0 0-2-2h-3M9 3h6v4H9zM8 12h6M8 16h4"/></svg>Paste</button>
+            <span class="character-count" id="character-count">0 / 500</span>
+          </div>
+        </div>
+
+        <div class="language-panel output-panel" id="output-panel" aria-busy="false">
+          <div class="panel-heading">
+            <h2 class="language-name">Kashmiri <span class="koshur-name" lang="ks-Arab" dir="rtl">کٲشُر</span></h2>
+          </div>
+          <div class="output-area">
+            <p class="empty-output" id="empty-output">Translation</p>
+            <p id="translation" class="translation" lang="ks-Arab" dir="rtl" hidden></p>
+            <div id="translation-error" class="translation-error" hidden><p id="error-message"></p><button id="retry" class="retry-button" type="button">Try again <span aria-hidden="true">↻</span></button></div>
+          </div>
+          <div class="panel-bottom output-bottom">
+            <label class="marks-control" title="Adds diacritics to Kashmiri text"><input id="reading-marks" type="checkbox" checked><span class="toggle" aria-hidden="true"></span><span>Add diacritics</span></label>
+            <button id="copy" class="utility-button copy-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></svg><span id="copy-label">Copy</span></button>
+          </div>
+          <div class="speech-controls" role="group" aria-label="Listen in Kashmiri">
+            <button id="voice-male" class="voice-button" type="button" aria-label="Listen in a male voice" aria-pressed="false" disabled><span aria-hidden="true">🔊</span><span id="voice-male-label">Male voice</span></button>
+            <button id="voice-female" class="voice-button" type="button" aria-label="Listen in a female voice" aria-pressed="false" disabled><span aria-hidden="true">🔊</span><span id="voice-female-label">Female voice</span></button>
+          </div>
+          <p id="speech-status" class="sr-only" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <p id="typing-help" class="sr-only">Translation updates after you pause typing.</p>
+      <p id="translation-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
+
+    <div class="phrase-buttons" role="group" aria-label="Example phrases">
+      <button type="button" data-phrase="What is your name?" class="phrase-button">What is your name?</button>
+      <button type="button" data-phrase="Have you eaten?" class="phrase-button">Have you eaten?</button>
+      <button type="button" data-phrase="Kashmir belongs to Kashmiris." class="phrase-button">Kashmir belongs to Kashmiris.</button>
+    </div>
+  </main>
+
+  <dialog id="about-dialog" aria-labelledby="about-title">
+    <div class="dialog-header"><img src="/static/flower.svg" width="40" height="40" alt=""><button id="about-close" class="icon-button" aria-label="Close about" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+    <h2 id="about-title">About</h2>
+    <p>Made by <a href="https://jibby1729.github.io/" target="_blank" rel="noopener noreferrer">Jibran Iqbal Shah</a>. Inspired by the <a href="https://www.kaggle.com/competitions/kathe-2026" target="_blank" rel="noopener noreferrer">KATHE AI 2026 contest</a>.</p>
+    <p>Our model tops <a href="https://huggingface.co/Jibby1729/Koshur-Sarvam-4B#6-comparison-with-other-models" target="_blank" rel="noopener noreferrer">open Kashmiri translation benchmarks</a>, ahead of the ranked KATHE contest models, Microsoft Translator, and the frontier closed-source models tested.</p>
+    <p>Switch off diacritics to hide diacritics like zabar (<span lang="ks-Arab" dir="rtl">◌َ</span>), zer (<span lang="ks-Arab" dir="rtl">◌ِ</span>), and pesh (<span lang="ks-Arab" dir="rtl">◌ُ</span>).</p>
+    <p>Models: <a href="https://huggingface.co/Jibby1729/Koshur-Sarvam-4B" target="_blank" rel="noopener noreferrer">Koshur-Sarvam-4B</a> and <a href="https://huggingface.co/Jibby1729/Koshur-JibDiacritizer-152M" target="_blank" rel="noopener noreferrer">Koshur-JibDiacritizer-152M</a>.</p>
+    <p class="about-small">Voices use <a href="https://github.com/gaash-lab/Bolbosh" target="_blank" rel="noopener noreferrer">Bolbosh</a>, made by <a href="https://gaash.nitsri.ac.in/" target="_blank" rel="noopener noreferrer">Gaash Lab</a> at NIT Srinagar.</p>
+    <p class="about-small">Translations may contain errors as this is a neural network based translator.</p>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
