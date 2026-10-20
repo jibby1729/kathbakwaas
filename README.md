@@ -1,4 +1,4 @@
-# Kath Bakwaas
+# Kath Bath
 
 English → Kashmiri translation as you type, with optional diacritics and male/female audio playback. Made by [Jibran Iqbal Shah](https://jibby1729.github.io/), inspired by the [KATHE AI 2026 contest](https://www.kaggle.com/competitions/kathe-2026).
 
@@ -35,11 +35,24 @@ For UI work without downloading or loading models:
 .\start.ps1 -Preview
 ```
 
+The interface uses original SVG artwork: a chinar leaf, a thin geometric line inspired by
+Kashmiri woodwork, and a layered mountain and lake illustration. These are local vector assets,
+with no stock photos or generated bitmap images. To regenerate the mountain artwork,
+run `python scripts/draw_landscape.py`. Edit the palette and layout in `web/styles.css`.
+The thin woodwork line adapts the octagonal frames, pointed spacers, and floral
+centres visible in [Gaatha's Khatamband~Srinagar craft documentation](https://gaatha.org/Craft-of-India/research-khatamband-craft-srinagar/).
+It is an original SVG interpretation; the reference photograph is not included.
+
+Typography uses locally hosted **Latin Modern Roman**, based on the Computer Modern
+family used in LaTeX, with **Noto Naskh Arabic** as the fallback for Kashmiri characters.
+Font files and their licenses are included in `web/fonts/`; visitors do not contact
+an external font service. See `web/fonts/FONTS.md` for sources and redistribution details.
+
 ## Share from your laptop
 
 For a few people, use the included **Cloudflare Quick Tunnel**. No account, domain
 purchase, email login or router port forwarding is needed. The site is still called
-**Kath Bakwaas**; its temporary address looks like `https://random-words.trycloudflare.com`.
+**Kath Bath**; its temporary address looks like `https://random-words.trycloudflare.com`.
 Anyone with the link can use it, including someone who receives a forwarded link.
 It is an unlisted public site, not authenticated private access.
 

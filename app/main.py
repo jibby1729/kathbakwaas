@@ -104,7 +104,7 @@ class SecurityHeadersMiddleware:
         await self.app(scope, receive, send_with_headers)
 
 
-app = FastAPI(title="Kath Bakwaas", lifespan=lifespan, docs_url=None, redoc_url=None)
+app = FastAPI(title="Kath Bath", lifespan=lifespan, docs_url=None, redoc_url=None)
 app.add_middleware(SecurityHeadersMiddleware)
 
 

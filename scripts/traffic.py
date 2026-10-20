@@ -20,7 +20,7 @@ if args.json:
     print(json.dumps(data, indent=2))
 else:
     from datetime import datetime
-    print('Kath Bakwaas traffic')
+    print('Kath Bath traffic')
     print('Counting since:', datetime.fromisoformat(data['enabled_at_utc']).astimezone().strftime('%Y-%m-%d %I:%M %p %Z'))
     for label, key in [('Page loads', 'page_loads'), ('Approximate visitors (distinct IPs)', 'approximate_unique_ips'),
                        ('Successful translations', 'successful_translations'), ('  Fresh', 'fresh_translations'),

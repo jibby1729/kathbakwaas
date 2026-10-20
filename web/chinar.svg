@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116 128" fill="none">
+  <!-- Original drawing of Platanus orientalis: five elongated, coarsely
+       toothed lobes, deep sinuses, and basal palmate venation. -->
+  <defs>
+    <linearGradient id="copper" x1="22" y1="18" x2="87" y2="102" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C77946"/><stop offset="1" stop-color="#9E432F"/>
+    </linearGradient>
+  </defs>
+  <path d="M57 5 Q54 17 48 24 L44 22 Q46 32 39 41 L35 36
+    Q37 48 40 57 Q42 64 36 60 Q27 53 20 42 L17 33 L14 37
+    Q9 32 4 27 Q6 40 11 48 L6 48 Q15 57 17 64 L11 64
+    Q21 71 30 74 Q36 79 28 80 L15 78 L17 83 L3 88
+    Q13 91 21 92 L19 97 Q32 99 42 93 Q50 88 56 93
+    Q61 88 70 93 Q81 99 92 95 L89 90 Q102 88 113 81
+    L99 79 L102 74 Q89 78 82 76 Q77 75 84 70
+    Q94 65 104 59 L98 58 Q105 49 108 41 L103 43
+    Q107 32 109 24 Q98 30 93 35 L91 30 Q87 44 77 54
+    Q69 64 70 54 Q73 43 71 34 L67 39 Q64 29 65 21
+    L61 24 Q59 16 57 5Z" fill="url(#copper)"/>
+  <g stroke="#F5D5A9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M56 92 Q55 59 57 15 M56 91 Q31 61 10 35
+      M56 91 Q77 56 102 32 M56 91 Q35 85 12 88
+      M56 91 Q80 84 104 82" stroke-width="1.4"/>
+    <path d="m56 39-7-10m7 23-13-8m13 22 10-20
+      m-9 29 12-13M33 64l-4-13m13 24-18-9
+      m56-9 14-9m-23 22 16-5M38 86l-10 7m48-8 9 6"
+      stroke-width=".8" opacity=".65"/>
+  </g>
+  <path d="M56 92q2 18-7 31" stroke="#9E432F" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

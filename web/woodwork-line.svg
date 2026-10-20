@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="32" viewBox="0 0 96 32" fill="none">
+  <!-- Original line drawing after the panel arrangement observed in Gaatha's
+       Khatamband~Srinagar craft documentation (not a reproduction of the photo):
+       double octagonal frames, pointed six-sided spacers, eight-petal centres.
+       https://gaatha.org/Craft-of-India/research-khatamband-craft-srinagar/ -->
+  <defs>
+    <path id="octagon" d="M-6-15H6L15-6V6L6 15H-6L-15 6V-6Z"/>
+    <path id="petal" d="M0-2Q-4-5 0-10Q4-5 0-2Z"/>
+    <g id="panel" stroke="#916B4E" stroke-linejoin="round">
+      <use href="#octagon" stroke-width="1.1"/>
+      <use href="#octagon" transform="scale(.82)" stroke-width=".8"/>
+      <g stroke-width=".75">
+        <use href="#petal"/><use href="#petal" transform="rotate(45)"/>
+        <use href="#petal" transform="rotate(90)"/><use href="#petal" transform="rotate(135)"/>
+        <use href="#petal" transform="rotate(180)"/><use href="#petal" transform="rotate(225)"/>
+        <use href="#petal" transform="rotate(270)"/><use href="#petal" transform="rotate(315)"/>
+      </g>
+      <circle r="1.7" stroke-width=".8"/>
+      <!-- Short mitre lines make the concentric outlines read as joined wood. -->
+      <path d="m6-15-1 3m10 6-3 1m3 11-3-1m-6 10-1-3m-11 3 1-3m-10-6 3-1m-3-11 3 1m6-10 1 3" stroke-width=".7"/>
+    </g>
+    <g id="spacer" stroke="#916B4E" stroke-linejoin="round">
+      <path d="m0-15 9 9V6L0 15-9 6V-6Z" stroke-width="1.1"/>
+      <path d="m0-11 6 6V5L0 11-6 5V-5Z" stroke-width=".8"/>
+    </g>
+  </defs>
+  <use href="#panel" transform="translate(24 16)"/>
+  <use href="#panel" transform="translate(72 16)"/>
+  <use href="#spacer" transform="translate(0 16)"/>
+  <use href="#spacer" transform="translate(48 16)"/>
+  <use href="#spacer" transform="translate(96 16)"/>
+  <g stroke="#916B4E" stroke-width=".8">
+    <path d="M6 1h12M30 1h12M54 1h12M78 1h12M6 31h12M30 31h12M54 31h12M78 31h12"/>
+  </g>
+</svg>
