@@ -1,0 +1,3 @@
+# Optional gateway; installed in the existing translator environment.
+httpx==0.28.1
+psutil==7.2.2

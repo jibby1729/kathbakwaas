@@ -35,7 +35,137 @@ For UI work without downloading or loading models:
 .\start.ps1 -Preview
 ```
 
-Preview mode explicitly reports that live translation is unavailable. The one curated example, **“Kashmir belongs to Kashmiris.”**, has an intentional saved answer supplied for the site: **کٔشیٖر چھِ کٲشِرؠن ہٕنٛز۔** It works without inference; other inputs require the model. This exception also applies in normal mode and is excluded from model equality tests.
+## Share from your laptop
+
+For a few people, use the included **Cloudflare Quick Tunnel**. No account, domain
+purchase, email login or router port forwarding is needed. The site is still called
+**Kath Bakwaas**; its temporary address looks like `https://random-words.trycloudflare.com`.
+Anyone with the link can use it, including someone who receives a forwarded link.
+It is an unlisted public site, not authenticated private access.
+
+1. Install the small sharing dependency once:
+   `.\.venv\Scripts\python.exe -m pip install -r requirements-sharing.txt`.
+2. Run `start.cmd` and wait for **Ready** at `http://127.0.0.1:8000`.
+3. Double-click `share.cmd`. It downloads a pinned Windows x64 `cloudflared` release
+   from Cloudflare's GitHub repository, verifies its SHA-256, starts the gateway,
+   and prints the link. Send that link to your friends.
+4. Keep the laptop awake, online and plugged in, and keep both windows open.
+   Use **Ctrl+C in the sharing window** or double-click **`stop-sharing.cmd`** to
+   remove public access. Local translation stays running. Stop its own window
+   separately when finished.
+
+The current link is also saved in `.hosting/url.txt` while sharing runs. A restart
+creates a different link. Gateway and tunnel diagnostics live in `.hosting/`;
+these files and the downloaded binary in `.tools/` are ignored by Git. No system
+service, firewall rule, startup entry or power setting is changed.
+
+On Windows, sharing automatically requests that the laptop **stay awake while
+plugged in**. The screen can turn off and Windows can lock. Stopping sharing
+releases the request; unplugging restores normal battery sleep behavior. Keep
+the lid open: closing it, explicitly choosing Sleep, hibernation, shutdown or
+restarts can still take the site offline. This uses Windows' built-in
+`SetThreadExecutionState` API, with no extra software or simulated mouse activity.
+For an already-running session started before this feature, `keep-awake.cmd`
+attaches the same helper without restarting the tunnel or changing the URL. That
+helper exits after 12 hours, or earlier when sharing stops. Temporary gateway
+failures do not end sleep prevention. To choose a different duration, run
+`.\.venv\Scripts\python.exe scripts/keep_awake.py --hours 12`.
+For an exact deadline, use `--until 2026-10-20T23:00:00-04:00` instead of
+`--hours` (11 p.m. Toronto time on October 20 in this example). An explicit
+timezone offset is required; the deadline must be within the next seven days.
+Its live verification and expiry time are saved in `.hosting/keep-awake-status.json`.
+Expiry only releases the helper's sleep-prevention request; it does not shut down
+the website or change Windows' sleep settings. New `share.cmd` sessions keep their
+own request active until sharing ends.
+
+Traffic follows **browser → Cloudflare HTTPS → outbound tunnel → loopback gateway
+on port 8010 → local model service on port 8000**. Both local ports bind only to
+`127.0.0.1`. Cloudflare terminates HTTPS, so it is part of the trusted traffic path;
+inference runs on your laptop. The gateway exposes only the page, static assets,
+health, translation, prefill and speech routes. It does not expose FastAPI's schema
+or arbitrary local services. It forwards no visitor credentials to the backend.
+
+The gateway caps request bodies at 16 KiB, body uploads at five seconds, total
+in-flight requests at 32, translation requests at three (one running plus up to
+two waiting), prefill at one, and speech at one. All POSTs share a token bucket
+of four requests/second with a burst of 24; this includes speculative typing
+requests. Excess requests receive 429, rather than adding more model workers.
+The existing GPU lock and memory checks remain in effect. Model weights,
+quantization, decoding and diacritization are unchanged. Global limits prevent
+visitors bypassing limits by supplying fake IP headers, but a determined visitor
+could still monopolize the allowance. This is a small trial, not a full abuse
+prevention service.
+
+The page shows an overload message for rate limits or GPU memory pressure and
+an unavailable/overloaded message for server and proxy failures, including HTML
+error responses. After 15 seconds it shows that the server is still trying;
+timeouts offer a retry instead of blaming the sentence length. Refresh existing
+browser tabs after a frontend update to load the latest messages.
+
+Cross-site browser POSTs are rejected. `robots.txt` and `X-Robots-Tag` ask search
+engines not to index the site; these are requests to crawlers, not access controls.
+Responses use `Referrer-Policy: no-referrer` and `Cache-Control: no-store`. The
+application's existing content security policy is preserved. Do not post the link
+in a public directory if you want to keep the audience small.
+
+**Capacity:** start with two or three active typists and a handful of occasional
+visitors. This is an estimate, not a concurrent-user benchmark. The 400-input audit
+measured a 1.23-second median for fresh prompts and about 11.6 seconds at P95;
+typing causes additional work and longer passages block the same single GPU
+worker. At 1.23 seconds per job, a hypothetical stream of equally short jobs would
+top out near 49/minute before typing work and network overhead. This is not a
+sustained throughput claim. More people can open the page than can translate
+simultaneously. CPU speech also serves one request at a time.
+
+[Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/)
+are free temporary demos with no uptime guarantee. For a permanent address later,
+buy a domain and configure a named Cloudflare Tunnel, for example
+`translate.yourdomain.com`; that example is not a reserved or purchased address.
+The same laptop backend can remain in place. A permanent domain does not make
+the laptop faster or keep it online when asleep.
+
+## Local traffic counts
+
+Double-click **`traffic.cmd`** for page loads, approximate visitors, successful
+translations (fresh versus cached), and translation errors. Or run
+`.\.venv\Scripts\python.exe scripts/traffic.py --json` for structured output.
+Counts begin when the analytics-enabled sharing gateway starts; earlier traffic
+cannot be reconstructed. They persist across restarts in `.hosting/traffic.sqlite3`.
+There is no public analytics endpoint.
+
+The gateway counts successful `GET /` responses as page loads and successful
+`POST /api/translate` responses as translations. These are server responses, not
+proof someone read the result. Typing may produce several successful translations
+for one sentence. Static assets, health polls, speculative prefills and the
+browser-only curated Kashmir example are not counted as translations. Busy,
+cancelled and failed translation requests are reported separately.
+
+Approximate visitors are distinct Cloudflare visitor IPs seen on successful page
+or translation responses. People sharing Wi-Fi may count as one; changing IPs,
+VPNs, link previews and bots can affect the count. No fingerprinting cookies or
+browser identifiers are added. The gateway uses `CF-Connecting-IP` only from its
+loopback tunnel connection, with proxy-header rewriting disabled, and hashes the
+address using HMAC-SHA256 with a local secret before storing it. Raw IPs, submitted
+English, Kashmiri output, query strings and user-agent strings are not stored in
+analytics. Hashes are pseudonymous identifiers, not a guarantee of anonymity.
+
+Aggregate counters and unique-IP fingerprints persist locally. Detailed timestamp,
+request-category, response-status and elapsed-time records are limited to the most
+recent seven days and 10,000 events, pruned when traffic is recorded. Database and
+key files stay inside Git-ignored `.hosting/`. Locally marked verification requests
+are separate from normal traffic; `scripts/traffic.py --checks` shows them.
+Database write failures are logged and do not fail a translation, so such failures
+can cause undercounting.
+
+`scripts/deploy_gateway.py --prepare` records exact identities of the original
+gateway supervisor and its Cloudflare child. After testing a staging gateway,
+`--deploy` checks those identities and source hashes again, replaces only the
+gateway supervisor and gateway, and retains the existing Cloudflare process and
+URL. This Windows-only handoff causes a brief gateway interruption; model
+inference settings and the model process remain unchanged. The replacement
+supervisor still responds to `stop-sharing.cmd`. Its status is in
+`.hosting/gateway-supervisor.json`. Do not restart `share.cmd` to deploy a gateway
+update when a temporary link must be preserved.
 
 ## Model pipeline
 
@@ -91,6 +221,13 @@ On the validated Windows/Ada GPU configuration, the decoder uses a native NF4 ke
 
 Before inference, the server checks for 1.5 GiB of free GPU memory. If necessary, it releases optional graphs and prompt caches. If memory is still too tight, it returns a retryable response before starting generation. This reduces OOM risk; it cannot prevent another application from allocating GPU memory concurrently. The conversion-cache fallback is limited to 1000 MiB and leaves 2 GiB before graph capture.
 
+Other local GPU models share this budget. For example, OpenWhispr's GPU dictation
+service used about 1.9 GiB on this laptop and left too little headroom for
+translation. Temporarily stopping that model service restored translation.
+Keep other GPU workloads within the available memory; the server deliberately
+keeps its safety threshold instead of risking an OOM. Graph cleanup also releases
+the projection output tensors that could otherwise retain retired allocator segments.
+
 The native kernel requires the CUDA Toolkit's `nvcc` and Visual Studio C++ tools already installed locally; it builds into ignored `artifacts/native/`. No compiler is downloaded automatically. Unsupported configurations or setup failure use the earlier bounded conversion-cache/MLP-graph backend. Set `KOSHUR_NATIVE_DECODE=0` to select that backend, `KOSHUR_OPTIMIZE_EXECUTION=0` for stock inference, or `KOSHUR_PERFORMANCE_CORES=0` for normal Windows CPU scheduling. See [measurements and remaining work](INFERENCE_NOTES.md). Matching the stock translations and maintaining GPU headroom take priority over speed; the working latency target is around 1.5 seconds for ordinary sentences, with longer passages taking longer.
 
 ## API
@@ -103,9 +240,11 @@ The native kernel requires the CUDA Toolkit's `nvcc` and Visual Studio C++ tools
 
 FastAPI serves the page and API from the same origin. No browser API keys or external inference service. Typed text goes to the local server and remains in its in-memory cache until eviction/restart; the application does not write passages to a database, local storage, or access logs. Only the bigger-text preference is stored in the browser. Hugging Face is contacted to download model files. Model caches and environments are ignored by Git.
 
-The service binds to **127.0.0.1** by default. It is a local GPU application, not a public deployment. For public hosting, run the backend on a GPU host with HTTPS, authentication/rate limits, and an appropriate privacy policy; serving these static files alone cannot run the models. Use one Uvicorn worker per GPU to avoid loading duplicate model copies. No paid infrastructure is provisioned by this project.
-
-For a small private trial, the existing machine can serve the whole app through an authenticated HTTPS tunnel. A cloud alternative is a GPU worker behind a server-side gateway, with zero minimum workers and one maximum worker to bound concurrency. A standard CPU VPS alone cannot run this application's CUDA translator. Public access still needs authentication or abuse controls, per-user limits, a bounded queue and cost controls; the existing queue limit is not a rate limiter.
+The service binds to **127.0.0.1** by default. Optional laptop sharing uses the
+bounded gateway described above. Serving the static files alone cannot run the
+models. Use one Uvicorn model worker per GPU to avoid loading duplicate copies.
+No paid infrastructure is provisioned by this project. A standard CPU VPS alone
+cannot run this application's CUDA translator.
 
 Cloud migration is not yet implemented or benchmarked. The fastest native decoder is currently specific to **Windows/Ada GPUs**; moving to Linux or another GPU requires choosing the compatible path and repeating output-equality and latency tests. Cold-starting a cloud model also adds loading time. Keep four-beam decoding and the CPU diacritizer when comparing deployments.
 
@@ -125,7 +264,12 @@ The initial seven-case GPU smoke check missed a regression. The subsequent 161-i
 
 The expanded audit added **400 distinct inputs**, producing **1,200 translations** across stock inference, optimized fresh prompts, and optimized prepared prompts. Both optimized paths matched all 400 reference token sequences, drafts and diacritized outputs, with no errors or CUDA OOMs. The median translation times were 5.13 s, 1.23 s and 0.89 s respectively; prepared-prompt timing excludes preparation. Longer passages remained slower (optimized P95 about 11.6 s). These results apply to the tested hardware and software, not every device or possible input.
 
-The **25 Python tests** cover API validation, exact-input invalidation, isolation, cancellation, memory-pressure handling and bounded CPU speech. JavaScript checks cover typing, saved examples, speech loading/double-click protection, replay, stopping, errors and stale responses. Browser checks cover the page and voice playback. Six real CPU speech samples passed WAV checks; pronunciation quality still needs human review.
+Python tests cover API validation, exact-input invalidation, isolation, cancellation,
+memory-pressure handling, bounded CPU speech, and the sharing gateway's route,
+body, origin, rate and concurrency limits. JavaScript checks cover typing, saved
+examples, speech loading/double-click protection, replay, stopping, errors and
+stale responses. Browser checks cover the page and voice playback. Six real CPU
+speech samples passed WAV checks; pronunciation quality still needs human review.
 
 With the app stopped, run `python scripts/benchmark_prefix.py` using the project environment for fresh-versus-cached four-beam comparisons. Results are written under the ignored `artifacts/` directory. `scripts/benchmark_latency.py` profiles the pipeline; its optional `--include-greedy` flag is an exploratory output comparison and never changes app settings. Production continues to use four beams and CPU FP32 diacritization.
 

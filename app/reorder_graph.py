@@ -1,5 +1,6 @@
 """Exact beam gathers captured together, with identity-only warm-up."""
 import torch
+from .graph_pool import capture_pool
 
 class ReorderGraphs:
     def __init__(self,cache,stream=None):
@@ -34,7 +35,7 @@ class ReorderGraphs:
                 self.gather(cursor)
             torch.cuda.current_stream().wait_stream(stream)
             graph=torch.cuda.CUDAGraph()
-            with torch.cuda.graph(graph,pool=self.pool),torch.inference_mode():
+            with torch.cuda.graph(graph,pool=capture_pool(self)),torch.inference_mode():
                 self.gather(cursor)
             self.graphs[cursor]=graph
         self.indices.copy_(indices)

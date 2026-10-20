@@ -18,6 +18,14 @@ def release_graphs(backend, include_decoder=True):
         backend[name].graphs.clear()
     for helper in backend['beam_helpers']:
         helper.graphs.clear()
+    # A projection keeps its last outputs for the other members of its fused
+    # group. Between requests these tensors are disposable, but a captured
+    # output can keep segments of a retired CUDA graph pool resident. Dropping only
+    # the graph dictionaries therefore does not necessarily return its memory.
+    # The first projection call repopulates both fields before any reuse.
+    for product in backend.get('products', ()):
+        product.outputs = None
+        product.input_pointer = None
 
 
 def ensure_headroom(engine):

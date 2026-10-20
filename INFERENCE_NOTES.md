@@ -132,3 +132,62 @@ Median translation times were 5.13 s stock, 1.23 s optimized with a fresh prompt
 The readable report is `artifacts/expanded-accuracy-summary.md`; the full inputs and outputs are `expanded-corpus.json`, `expanded-stock.json`, `expanded-native.json` and `expanded-typing.json` under `artifacts/`. Reports record corpus/source hashes, model revisions, library versions and effective generation settings. Reproduction scripts are `scripts/build_expanded_corpus.py`, `scripts/run_expanded_accuracy.py` (stop the web model first) and `scripts/summarize_expanded_accuracy.py`.
 
 The suggested phrase is now “What is your name?”. The previously requested curated Kashmir example remains an intentional browser-only override. General Kashmir-to-Kashir spelling replacement has only been discussed: the requested scope is the place name alone, and no such rule has been implemented.
+
+## 2026-10-18: graph-pool lifetime repair
+
+The live service released optional graphs for GPU headroom, then subsequent
+prefill captures failed with PyTorch's `use_count > 0` allocator assertion. Graph
+cache clearing retired the shared pool, but the wrappers retained its handle.
+That handle alone does not keep a pool alive. Captures now allocate a fresh pool
+whenever their graph cache is empty, including after memory-pressure clearing or
+eviction of the last entry. Live graphs continue to share their existing pool.
+The fix covers prefill, beam helpers, decoder and reorder wrappers without
+changing model operations, weights, beams, token limits or diacritization.
+
+`scripts/check_graph_pool.py --legacy` reproduced the exact assertion on this
+GPU. The repaired path passed 100 capture/replay/release cycles with exact numeric
+outputs, including retained output tensors and allocator-cache cleanup. The 33
+Python tests passed. After restarting only the model backend, both “I can speak
+Kashmiri” and the version with a full stop translated through the unchanged public
+URL in approximately 1.0–1.7 seconds. Twelve deterministic selections from the
+saved stock-reference corpus matched both draft and diacritized text exactly;
+six used prepared prompts. This additional check compares strings, not token IDs,
+and is not a repeat of the full 400-case audit. Evidence is in
+`artifacts/graph-repair-public-check.json` and `artifacts/graph-repair-local-check.json`.
+
+The generic HTTP 500 message now identifies a server error instead of suggesting
+that shortening a valid sentence will fix it. `/api/health` remains a model-load
+readiness signal; it is not an end-to-end inference test. Cloudflare and the
+sharing gateway were not restarted during recovery.
+
+## 2026-10-19: competing GPU workload and cleanup of retained outputs
+
+The host process inventory showed the translator using about 4,765 MiB of
+dedicated GPU memory and OpenWhispr's separate dictation service using about
+1,915 MiB. Free memory was below the unchanged 1,536 MiB admission threshold.
+At the user's request, only OpenWhispr's model service was temporarily stopped;
+its settings were not edited. Free VRAM rose to about 2,314 MiB and fresh public
+translation resumed before the code deployment.
+
+`release_graphs` now also drops the native projection products' last output
+tensors and input-pointer markers. Those outputs are only reused within a fused
+projection group, but can retain allocator segments after their CUDA graph is
+removed. Clearing them between requests releases the references; the first
+projection of each group repopulates them before reuse. Weights, numerical
+operations, four-beam decoding, token limits and the safety threshold are unchanged.
+
+The small CUDA regression in `scripts/check_graph_release.py` reproduced a
+2 MiB retained segment with the old cleanup and zero retained bytes after the
+fixed cleanup. This demonstrates the lifecycle defect; it does not establish
+that this defect caused all of the live VRAM pressure. All 40 Python tests passed.
+After a backend-only restart, 16 uncached API translations (eight with prepared
+prompts) matched saved stock draft and diacritized strings exactly. This is a
+targeted string comparison, not a new 400-case token audit. Results are in the
+ignored `artifacts/memory-recovery-verification.json`.
+
+The original Cloudflare process and gateway remained running. A fresh public
+translation of "I can speak Kashmiri." took about 1.22 seconds of server processing;
+the CPU female voice returned a valid WAV. Final GPU headroom was 1,926 MiB.
+Starting another GPU model can consume this margin again. Host process and port
+checks must run outside the restricted sandbox: its isolated process view had
+incorrectly made the running service appear absent in earlier diagnostics.

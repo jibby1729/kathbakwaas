@@ -2,6 +2,7 @@
 import functools
 from collections import OrderedDict
 import torch
+from .graph_pool import capture_pool
 
 class BeamHelperGraph:
     def __init__(self,model,name,normalize=False,max_graphs=4,stream=None):
@@ -36,7 +37,7 @@ class BeamHelperGraph:
                 self.original(**call)
             torch.cuda.current_stream().wait_stream(stream)
             graph=torch.cuda.CUDAGraph()
-            with torch.cuda.graph(graph,pool=self.pool),torch.inference_mode():
+            with torch.cuda.graph(graph,pool=capture_pool(self)),torch.inference_mode():
                 outputs=self.original(**call)
             graph.replay()
             if not all(torch.equal(a,b) for a,b in zip(expected,outputs)):

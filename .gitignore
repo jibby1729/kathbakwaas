@@ -207,6 +207,8 @@ cython_debug/
 tempCodeRunnerFile.py
 .model-cache/
 artifacts/
+.tools/
+.hosting/
 
 # Ruff stuff:
 .ruff_cache/

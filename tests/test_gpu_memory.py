@@ -17,6 +17,7 @@ def setup(monkeypatch, free_values):
     engine = SimpleNamespace(prompt_cache=SimpleNamespace(entries={'page': object()}),
                              fast_execution={k: graph() for k in ['decoder', 'reorder', 'prefill']})
     engine.fast_execution['beam_helpers'] = [graph(), graph()]
+    engine.fast_execution['products'] = [SimpleNamespace(outputs=object(), input_pointer=123)]
     return engine, cuda
 
 
@@ -24,6 +25,7 @@ def test_enough_headroom_keeps_acceleration(monkeypatch):
     engine, cuda = setup(monkeypatch, [2000])
     ensure_headroom(engine)
     assert engine.fast_execution['decoder'].graphs
+    assert engine.fast_execution['products'][0].outputs is not None
     cuda.synchronize.assert_not_called()
 
 
@@ -34,6 +36,8 @@ def test_pressure_releases_caches_before_new_work(monkeypatch):
     assert not engine.fast_execution['prefill'].graphs
     assert engine.fast_execution['decoder'].graphs
     assert all(not g.graphs for g in engine.fast_execution['beam_helpers'])
+    assert engine.fast_execution['products'][0].outputs is None
+    assert engine.fast_execution['products'][0].input_pointer is None
     cuda.empty_cache.assert_called_once()
 
 

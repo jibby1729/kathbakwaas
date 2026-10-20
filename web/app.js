@@ -9,6 +9,8 @@ const copyButton = $("copy");
 const connection = $("connection");
 const DEBOUNCE_MS = 250;
 const PREFILL_DELAY_MS = 120;
+const OVERLOAD_MESSAGE = "Server overloaded. Too many users or limited server memory. Please try again shortly.";
+const UNAVAILABLE_MESSAGE = "Server unavailable or overloaded. Please try again shortly.";
 // A curated example supplied by the site owner, not a model-generated result.
 const savedTranslations = new Map([
   ["kashmir belongs to kashmiris", "کٔشیٖر چھِ کٲشِرؠن ہٕنٛز۔"],
@@ -109,11 +111,20 @@ async function translateNow() {
   announce("Translating…");
   // A local model may need time, especially for a paragraph.
   const timeout = setTimeout(() => controller.abort("timeout"), 180000);
+  const slowNotice = setTimeout(() => {
+    if (myRevision !== revision || controller.signal.aborted) return;
+    empty.textContent = "The server is busy. Still trying…";
+    announce("The server is busy. Still trying…");
+  }, 15000);
   try {
     const response = await fetch("/api/translate", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, session_id: sessionId }), signal: controller.signal,
     });
+    if (myRevision !== revision) return;
+    // Capacity and proxy failures may return HTML rather than JSON.
+    if (response.status === 429 || response.status === 503) throw new Error(OVERLOAD_MESSAGE);
+    if (response.status >= 500) throw new Error(UNAVAILABLE_MESSAGE);
     const data = await response.json();
     if (myRevision !== revision) return;
     if (!response.ok) {
@@ -130,12 +141,13 @@ async function translateNow() {
     if (myRevision !== revision) return;
     if (controller.signal.aborted && controller.signal.reason !== "timeout") return;
     showError(controller.signal.reason === "timeout"
-      ? "Translation timed out. Try a shorter sentence."
+      ? UNAVAILABLE_MESSAGE
       : error instanceof TypeError
         ? "We couldn’t reach the translator. Check the connection and try again."
         : error.message);
   } finally {
     clearTimeout(timeout);
+    clearTimeout(slowNotice);
     if (myRevision === revision) {
       setBusy(false);
       activeRequest = null;

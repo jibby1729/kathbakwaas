@@ -183,7 +183,7 @@ async def translate(body: TranslateRequest, request: Request):
         raise HTTPException(422, str(exc)) from exc
     except Exception as exc:
         logger.exception("Translation failed")
-        raise HTTPException(500, "Translation didn’t finish. Please try again or use a shorter sentence.") from exc
+        raise HTTPException(500, "The translator had a server error. Please try again in a moment.") from exc
     finally:
         app.state.pending -= 1
         cancelled.set()

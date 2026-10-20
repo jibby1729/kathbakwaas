@@ -17,6 +17,7 @@ let now = 0;
 let nextTimer = 0;
 const timers = new Map();
 const requests = [];
+let translationReply = null;
 const context = vm.createContext({
   document: { getElementById: node, querySelectorAll: () => [], hidden: false,
     addEventListener() {}, body: { classList: node("body").classList } },
@@ -28,6 +29,7 @@ const context = vm.createContext({
   clearTimeout(id) { timers.delete(id); },
   async fetch(url, options) {
     requests.push({ url, body: options?.body ? JSON.parse(options.body) : null });
+    if (url === "/api/translate" && translationReply) return translationReply(options);
     return { ok: true, json: async () => url === "/api/health" ? { state: "ready" }
       : url === "/api/prefill" ? { prefilled: true }
       : { translation: "کٲشُر", draft: "کاشر" } };
@@ -93,3 +95,29 @@ type("Kashmir belongs to Kashmiris and others.");
 await tick(250);
 assert.equal(requests.at(-1).body.text, "Kashmir belongs to Kashmiris and others.", "Edited sentences must use the model");
 console.log("Typing checks passed: early prefill, word boundaries, page session, debounce, clear, IME, saved phrase and diacritics.");
+
+for (const code of [429, 503, 500, 502, 504, 524]) {
+  translationReply = async () => ({ ok: false, status: code,
+    json: async () => { throw new Error("HTML error pages must not be parsed as JSON"); } });
+  type(`Failure example ${code}`);
+  await tick(250);
+  assert.equal(node("translation-error").hidden, false);
+  assert.match(node("error-message").textContent, /[Ss]erver .*overloaded/);
+  assert.doesNotMatch(node("error-message").textContent, /shorter|JSON|GPU/);
+}
+translationReply = (options) => new Promise((resolve, reject) => {
+  options.signal.addEventListener("abort", () => reject(new Error("Aborted")));
+});
+type("A stalled translation");
+await tick(250);
+await tick(15000);
+assert.equal(node("empty-output").textContent, "The server is busy. Still trying…");
+await tick(165000);
+assert.match(node("error-message").textContent, /Server unavailable or overloaded/);
+type("Cancel while typing");
+await tick(250);
+type("");
+await flush();
+await tick(180000);
+assert.equal(node("translation-error").hidden, true, "Typing cancellation must remain silent");
+console.log("Capacity checks passed: 429, GPU 503, HTML proxy errors, slow requests, timeout, and silent cancellation.");

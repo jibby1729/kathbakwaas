@@ -1,6 +1,7 @@
 """Bounded shape-exact decode graphs with an unbounded dynamic-cache fallback."""
 import functools
 import torch
+from .graph_pool import capture_pool
 from transformers import DynamicCache
 from transformers.cache_utils import DynamicLayer
 from transformers.modeling_outputs import CausalLMOutputWithPast
@@ -113,7 +114,7 @@ class DecoderGraphs:
                 self.original(**call)
             torch.cuda.current_stream().wait_stream(stream)
             graph = torch.cuda.CUDAGraph()
-            with torch.cuda.graph(graph,pool=self.pool),torch.inference_mode():
+            with torch.cuda.graph(graph,pool=capture_pool(self)),torch.inference_mode():
                 output = self.original(**call)
             self.graphs[cursor] = graph,output.logits
         graph,logits = self.graphs[cursor]

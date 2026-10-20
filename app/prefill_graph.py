@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import torch
 from transformers.modeling_outputs import CausalLMOutputWithPast
+from .graph_pool import capture_pool
 
 class PrefillGraphs:
     def __init__(self,decoder,max_graphs=2):
@@ -33,7 +34,7 @@ class PrefillGraphs:
                 self.decoder.original(**call)
             torch.cuda.current_stream().wait_stream(stream)
             graph=torch.cuda.CUDAGraph()
-            with torch.cuda.graph(graph,pool=self.pool),torch.inference_mode():
+            with torch.cuda.graph(graph,pool=capture_pool(self)),torch.inference_mode():
                 output=self.decoder.original(**call)
             self.graphs[length]=(graph,inputs,positions,output.logits)
         graph,inputs,positions,logits=self.graphs[length]
