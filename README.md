@@ -1,16 +1,49 @@
 # Kath Bath
 
-English → Kashmiri translation as you type, with optional diacritics and male/female audio playback. Made by [Jibran Iqbal Shah](https://jibby1729.github.io/), inspired by the [KATHE AI 2026 contest](https://www.kaggle.com/competitions/kathe-2026).
+English → Kashmiri translation as you type, powered by **Koshur-Sarvam-4B — the best-performing English-to-Kashmiri translation model in our published comparison of open benchmarks**.
 
-The page uses large, readable text, a bigger-text option, copy/paste controls, and three example phrases. Kashmiri appears in Perso-Arabic script. The browser interface is plain HTML, CSS and JavaScript; FastAPI runs the models locally. No external inference API or browser API key is needed.
+Our translator and diacritizer rank **first with a mean KATHE score of 14.91** across four public test sets, ahead of the evaluated KATHE 2026 competition systems, Microsoft Bing Translator, Claude Opus 5.5, GPT-6 Astra, and Gemini 3.1 Pro. The **4-bit version used by this website scores 14.90**, placing second in the same comparison. See the [Hugging Face leaderboard](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B#6-comparison-with-other-models) for the full evaluation.
 
-| Component | Model | Runs on |
-| --- | --- | --- |
-| Translation | [Koshur-Sarvam-4B](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B) · NF4, four beams | NVIDIA GPU |
-| Diacritics | [Koshur-JibDiacritizer-152M](https://huggingface.co/Jibby1729/Koshur-JibDiacritizer-152M) | CPU |
-| Speech | [Bolbosh](https://github.com/gaash-lab/Bolbosh) + HiFi-GAN, by [Gaash Lab](https://gaash.nitsri.ac.in/) at NIT Srinagar | Separate CPU-only process |
+![Kath Bath translating English into Kashmiri, with snow-capped mountains, a chinar logo, and voice controls](docs/images/kath-bath.jpg)
 
-Translations may contain errors. Published translation benchmark comparisons are on the [model leaderboard](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B#6-comparison-with-other-models); the local regression tests below measure whether optimizations change outputs, not linguistic accuracy.
+Type English to translate live, toggle diacritics, or listen in a male or female voice. Large text, a bigger-text option, and copy/paste controls keep the page easy to use. Kashmiri appears in Perso-Arabic script. Models run locally; no external inference API or browser API key is needed.
+
+Made by [Jibran Iqbal Shah](https://jibby1729.github.io/), inspired by the [KATHE AI 2026 contest](https://www.kaggle.com/competitions/kathe-2026). Translation uses [Koshur-Sarvam-4B](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B); diacritics use [Koshur-JibDiacritizer-152M](https://huggingface.co/Jibby1729/Koshur-JibDiacritizer-152M). Voices use [Bolbosh](https://github.com/gaash-lab/Bolbosh), made by [Gaash Lab](https://gaash.nitsri.ac.in/) at NIT Srinagar.
+
+## Benchmark results
+
+[![Top five systems by mean KATHE score](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B/resolve/69b1a92f40ba83e7b763471c6169b0b8252062fc/assets/top-five.png)](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B#6-comparison-with-other-models)
+
+The model card's plot shows the top five systems. **Its vertical axis starts at 12**, so bar heights are not proportional to the scores.
+
+### Top 10
+
+Ranked by mean KATHE score across **IN22-Conv, IN22-Gen, SMOL, and FLORES-200 devtest: 4,402 sentences**. Higher is better. Each test-set cell is **no-diacritic BLEU / KATHE score**; KATHE combines marked BLEU and chrF++ using their geometric mean. These are our evaluations on public test sets, not official Kaggle blind-test scores.
+
+| Rank | System | KATHE score (mean) | VRAM | IN22-Conv | IN22-Gen | SMOL | FLORES |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 1 | **Our model: Sarvam 4B + Kashmiri-only restorer** | **14.91** | **8.4 GB** | **21.39 / 17.67** | **21.91 / 19.21** | **5.20 / 6.68** | **17.54 / 16.09** |
+| 2 | **Our model, 4-bit: Sarvam 4B NF4 + Kashmiri-only restorer** | **14.90** | **3.5 GB** | 20.96 / 17.37 | 21.63 / 19.24 | 5.19 / 6.65 | 17.96 / 16.34 |
+| 3 | [Noore: IndicTrans2 200M + restorer](https://huggingface.co/Aju360/kathe-r12-200m-selected), Kaggle #9 | 13.92 | 1.1 GB | 18.82 / 15.55 | 19.89 / 18.01 | 5.18 / 6.12 | 17.13 / 16.01 |
+| 4 | [TeamHD: NLLB 1.3B + 3.3B reranking](https://github.com/saliq-2/Final_submission_KATHE2026), Kaggle #1 [X] | 13.79 | 9.2 GB | 19.90 / 14.42 | 21.20 / 18.28 | 5.11 / 5.71 | 18.35 / 16.73 [X] |
+| 5 | Microsoft Bing Translator | 13.62 | N/A | 17.36 / 14.97 | 19.57 / 17.66 | 5.02 / 6.40 | 16.45 / 15.46 |
+| 6 | [Kathe Bathe: Sarvam 4B LoRA](https://huggingface.co/KatheBathe/Kathe-Bathe), Kaggle #4 | 13.19 | 8.6 GB | 19.46 / 14.28 | 18.65 / 16.92 | 4.92 / 5.98 | 16.56 / 15.60 |
+| 7 | [Sarvam-Translate 4B](https://huggingface.co/sarvamai/sarvam-translate), untouched | 12.90 | 8.6 GB | 17.82 / 13.49 | 19.90 / 18.00 | 4.60 / 5.56 | 15.55 / 14.57 |
+| 8 | [Bodhan ~8B](https://huggingface.co/bodhan-ai/indic-translate), untouched | 12.77 | 15.9 GB | 16.26 / 13.60 | 18.69 / 17.87 | 4.57 / 5.84 | 14.22 / 13.78 |
+| 9 | [Team IT: IndicTrans2 1B](https://huggingface.co/maliktafheem/kathe-2026-en-kas-arab-1b), Kaggle #11 | 12.26 | 4.5 GB | 18.74 / 13.78 | 16.33 / 14.01 | 5.01 / 5.80 | 16.03 / 15.44 |
+| 10 | [kav: NLLB 1.3B LoRA](https://huggingface.co/aymanmakroo/kav), Kaggle #2 | 11.49 | 2.8 GB | 13.67 / 12.22 | 15.47 / 15.70 | 4.00 / 4.87 | 13.55 / 13.19 |
+
+### Frontier model comparisons
+
+These three additional models retain their ranks from the full leaderboard.
+
+| Rank | System | KATHE score (mean) | VRAM | IN22-Conv | IN22-Gen | SMOL | FLORES |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 13 | Claude Opus 5.5 | 10.70 | N/A | 14.78 / 12.83 | 14.06 / 14.48 | 3.43 / 4.61 | 10.64 / 10.88 |
+| 15 | GPT-6 Astra | 9.58 | N/A | 13.75 / 11.24 | 13.29 / 13.63 | 3.25 / 3.91 | 9.53 / 9.55 |
+| 16 | Gemini 3.1 Pro | 9.14 | N/A | 14.49 / 10.63 | 14.44 / 13.58 | 3.92 / 3.93 | 10.42 / 8.41 |
+
+Source: [published model-card comparison](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B/blob/69b1a92f40ba83e7b763471c6169b0b8252062fc/README.md#6-comparison-with-other-models), checked October 21, 2026. VRAM figures follow the model card's measurement conventions and are not the website's total runtime memory requirement. **[X]** marks TeamHD's FLORES result: the model card reports that 603 of its 1,012 English test sources occur in that system's released training data. Frontier model names are the evaluated API endpoint labels. A fresh blind evaluation is still needed; benchmark leadership does not guarantee every translation is correct.
 
 ## Run locally (Windows + NVIDIA GPU)
 
@@ -35,160 +68,9 @@ For UI work without downloading or loading models:
 .\start.ps1 -Preview
 ```
 
-The interface uses original SVG artwork: a chinar leaf, a thin geometric line inspired by
-Kashmiri woodwork, and a layered mountain and lake illustration. These are local vector assets,
-with no stock photos or generated bitmap images. To regenerate the mountain artwork,
-run `python scripts/draw_landscape.py`. Edit the palette and layout in `web/styles.css`.
-The thin woodwork line adapts the octagonal frames, pointed spacers, and floral
-centres visible in [Gaatha's Khatamband~Srinagar craft documentation](https://gaatha.org/Craft-of-India/research-khatamband-craft-srinagar/).
-It is an original SVG interpretation; the reference photograph is not included.
+### Enable CPU voices
 
-Typography uses locally hosted **Latin Modern Roman**, based on the Computer Modern
-family used in LaTeX, with **Noto Naskh Arabic** as the fallback for Kashmiri characters.
-Font files and their licenses are included in `web/fonts/`; visitors do not contact
-an external font service. See `web/fonts/FONTS.md` for sources and redistribution details.
-
-## Share from your laptop
-
-For a few people, use the included **Cloudflare Quick Tunnel**. No account, domain
-purchase, email login or router port forwarding is needed. The site is still called
-**Kath Bath**; its temporary address looks like `https://random-words.trycloudflare.com`.
-Anyone with the link can use it, including someone who receives a forwarded link.
-It is an unlisted public site, not authenticated private access.
-
-1. Install the small sharing dependency once:
-   `.\.venv\Scripts\python.exe -m pip install -r requirements-sharing.txt`.
-2. Run `start.cmd` and wait for **Ready** at `http://127.0.0.1:8000`.
-3. Double-click `share.cmd`. It downloads a pinned Windows x64 `cloudflared` release
-   from Cloudflare's GitHub repository, verifies its SHA-256, starts the gateway,
-   and prints the link. Send that link to your friends.
-4. Keep the laptop awake, online and plugged in, and keep both windows open.
-   Use **Ctrl+C in the sharing window** or double-click **`stop-sharing.cmd`** to
-   remove public access. Local translation stays running. Stop its own window
-   separately when finished.
-
-The current link is also saved in `.hosting/url.txt` while sharing runs. A restart
-creates a different link. Gateway and tunnel diagnostics live in `.hosting/`;
-these files and the downloaded binary in `.tools/` are ignored by Git. No system
-service, firewall rule, startup entry or power setting is changed.
-
-On Windows, sharing automatically requests that the laptop **stay awake while
-plugged in**. The screen can turn off and Windows can lock. Stopping sharing
-releases the request; unplugging restores normal battery sleep behavior. Keep
-the lid open: closing it, explicitly choosing Sleep, hibernation, shutdown or
-restarts can still take the site offline. This uses Windows' built-in
-`SetThreadExecutionState` API, with no extra software or simulated mouse activity.
-For an already-running session started before this feature, `keep-awake.cmd`
-attaches the same helper without restarting the tunnel or changing the URL. That
-helper exits after 12 hours, or earlier when sharing stops. Temporary gateway
-failures do not end sleep prevention. To choose a different duration, run
-`.\.venv\Scripts\python.exe scripts/keep_awake.py --hours 12`.
-For an exact deadline, use `--until 2026-10-20T23:00:00-04:00` instead of
-`--hours` (11 p.m. Toronto time on October 20 in this example). An explicit
-timezone offset is required; the deadline must be within the next seven days.
-Its live verification and expiry time are saved in `.hosting/keep-awake-status.json`.
-Expiry only releases the helper's sleep-prevention request; it does not shut down
-the website or change Windows' sleep settings. New `share.cmd` sessions keep their
-own request active until sharing ends.
-
-Traffic follows **browser → Cloudflare HTTPS → outbound tunnel → loopback gateway
-on port 8010 → local model service on port 8000**. Both local ports bind only to
-`127.0.0.1`. Cloudflare terminates HTTPS, so it is part of the trusted traffic path;
-inference runs on your laptop. The gateway exposes only the page, static assets,
-health, translation, prefill and speech routes. It does not expose FastAPI's schema
-or arbitrary local services. It forwards no visitor credentials to the backend.
-
-The gateway caps request bodies at 16 KiB, body uploads at five seconds, total
-in-flight requests at 32, translation requests at three (one running plus up to
-two waiting), prefill at one, and speech at one. All POSTs share a token bucket
-of four requests/second with a burst of 24; this includes speculative typing
-requests. Excess requests receive 429, rather than adding more model workers.
-The existing GPU lock and memory checks remain in effect. Model weights,
-quantization, decoding and diacritization are unchanged. Global limits prevent
-visitors bypassing limits by supplying fake IP headers, but a determined visitor
-could still monopolize the allowance. This is a small trial, not a full abuse
-prevention service.
-
-The page shows an overload message for rate limits or GPU memory pressure and
-an unavailable/overloaded message for server and proxy failures, including HTML
-error responses. After 15 seconds it shows that the server is still trying;
-timeouts offer a retry instead of blaming the sentence length. Refresh existing
-browser tabs after a frontend update to load the latest messages.
-
-Cross-site browser POSTs are rejected. `robots.txt` and `X-Robots-Tag` ask search
-engines not to index the site; these are requests to crawlers, not access controls.
-Responses use `Referrer-Policy: no-referrer` and `Cache-Control: no-store`. The
-application's existing content security policy is preserved. Do not post the link
-in a public directory if you want to keep the audience small.
-
-**Capacity:** start with two or three active typists and a handful of occasional
-visitors. This is an estimate, not a concurrent-user benchmark. The 400-input audit
-measured a 1.23-second median for fresh prompts and about 11.6 seconds at P95;
-typing causes additional work and longer passages block the same single GPU
-worker. At 1.23 seconds per job, a hypothetical stream of equally short jobs would
-top out near 49/minute before typing work and network overhead. This is not a
-sustained throughput claim. More people can open the page than can translate
-simultaneously. CPU speech also serves one request at a time.
-
-[Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/)
-are free temporary demos with no uptime guarantee. For a permanent address later,
-buy a domain and configure a named Cloudflare Tunnel, for example
-`translate.yourdomain.com`; that example is not a reserved or purchased address.
-The same laptop backend can remain in place. A permanent domain does not make
-the laptop faster or keep it online when asleep.
-
-## Local traffic counts
-
-Double-click **`traffic.cmd`** for page loads, approximate visitors, successful
-translations (fresh versus cached), and translation errors. Or run
-`.\.venv\Scripts\python.exe scripts/traffic.py --json` for structured output.
-Counts begin when the analytics-enabled sharing gateway starts; earlier traffic
-cannot be reconstructed. They persist across restarts in `.hosting/traffic.sqlite3`.
-There is no public analytics endpoint.
-
-The gateway counts successful `GET /` responses as page loads and successful
-`POST /api/translate` responses as translations. These are server responses, not
-proof someone read the result. Typing may produce several successful translations
-for one sentence. Static assets, health polls, speculative prefills and the
-browser-only curated Kashmir example are not counted as translations. Busy,
-cancelled and failed translation requests are reported separately.
-
-Approximate visitors are distinct Cloudflare visitor IPs seen on successful page
-or translation responses. People sharing Wi-Fi may count as one; changing IPs,
-VPNs, link previews and bots can affect the count. No fingerprinting cookies or
-browser identifiers are added. The gateway uses `CF-Connecting-IP` only from its
-loopback tunnel connection, with proxy-header rewriting disabled, and hashes the
-address using HMAC-SHA256 with a local secret before storing it. Raw IPs, submitted
-English, Kashmiri output, query strings and user-agent strings are not stored in
-analytics. Hashes are pseudonymous identifiers, not a guarantee of anonymity.
-
-Aggregate counters and unique-IP fingerprints persist locally. Detailed timestamp,
-request-category, response-status and elapsed-time records are limited to the most
-recent seven days and 10,000 events, pruned when traffic is recorded. Database and
-key files stay inside Git-ignored `.hosting/`. Locally marked verification requests
-are separate from normal traffic; `scripts/traffic.py --checks` shows them.
-Database write failures are logged and do not fail a translation, so such failures
-can cause undercounting.
-
-`scripts/deploy_gateway.py --prepare` records exact identities of the original
-gateway supervisor and its Cloudflare child. After testing a staging gateway,
-`--deploy` checks those identities and source hashes again, replaces only the
-gateway supervisor and gateway, and retains the existing Cloudflare process and
-URL. This Windows-only handoff causes a brief gateway interruption; model
-inference settings and the model process remain unchanged. The replacement
-supervisor still responds to `stop-sharing.cmd`. Its status is in
-`.hosting/gateway-supervisor.json`. Do not restart `share.cmd` to deploy a gateway
-update when a temporary link must be preserved.
-
-## Model pipeline
-
-### CPU voices (Bolbosh)
-
-The **Male voice** and **Female voice** buttons play the Kashmiri translation.
-During preparation the active button shows **Loading…**, and both voice buttons are disabled so accidental double-clicks do not cancel the request. Playback starts automatically. Click the active button while it is playing to stop; changing the English text stops old audio.
-Speech uses the marked translation even when the diacritics display is switched off.
-
-Install once in a separate environment, leaving translator dependencies unchanged:
+Install Bolbosh in a separate environment:
 
 ```powershell
 python -m venv .venv-tts
@@ -196,52 +78,7 @@ python -m venv .venv-tts
 .\.venv\Scripts\python.exe scripts/setup_bolbosh.py
 ```
 
-Restart `start.cmd` after setup. Bolbosh preloads after the translator starts.
-`requirements-tts-lock.txt` records the tested CPU environment; install it with
-`--extra-index-url https://download.pytorch.org/whl/cpu` to reproduce exact versions.
-It uses **CPU-only PyTorch**, two CPU threads and a separate process: no CUDA
-context or GPU memory. The acoustic model has 20.9M parameters and HiFi-GAN
-has 13.9M. Model files download about 307 MB. The checkpoint is pinned to
-`718203e01e0b4ddab3e925445619c69cddeb7231` from
-[GAASH-Lab/Matcha-TTS-Kashmiri](https://huggingface.co/GAASH-Lab/Matcha-TTS-Kashmiri).
-It uses the official demo's 10-step, temperature 0.667, rate 1.0 settings and
-speaker IDs 422 (male) / 423 (female). No translation settings are changed.
-
-Only one speech job runs at once. Audio is cached in memory (32 entries / 16 MB),
-and long passages are split at sentences/words. Repeated playback is cached.
-Six real local samples took 0.84–3.06 seconds to synthesize after a 5.1-second
-initial load; longer passages take longer. This is a runtime check, not a
-human assessment of pronunciation. Run `python scripts/check_bolbosh.py` with
-the translator environment for WAV samples and timings in `artifacts/`.
-
-Bolbosh, HiFi-GAN and KashmiriNormalizer source licenses are retained under
-`vendor/bolbosh/`. See its README for the pinned sources and inference-only changes.
-
-### Translation
-
-1. [Jibby1729/Koshur-Sarvam-4B](https://huggingface.co/Jibby1729/Koshur-Sarvam-4B), pinned to `09ca1350c5654eb05fc585787bbe0f550daafff5`. The exact released system prompt, deterministic four-beam decoding, length penalty 0.7, and maximum 512 generated tokens. NF4 quantization with double quantization and BF16 computation (FP16 on GPUs without BF16). Generation caching is enabled for latency.
-2. [Jibby1729/Koshur-JibDiacritizer-152M](https://huggingface.co/Jibby1729/Koshur-JibDiacritizer-152M), pinned to `fd5df75a44cf09889c4cd373a6156f0cc2f92596`. Uses the bundled, reviewed `KashmiriRestorer` implementation, default IndicVoices style and no-mark bias. A letter-preservation check compares the normalized draft and restored output after stripping marks.
-
-Both marked and original draft text are returned together, so switching diacritics does not run another translation. Beam search returns the completed translation after a typing pause; it does not stream provisional tokens. Longer passages take longer than short phrases. A generation that reaches the token cap without finishing is reported as incomplete, rather than displayed as a finished translation.
-
-While typing, the page sends optional `/api/prefill` requests. The server runs the normal `generate()` preparation and its complete four-beam prompt forward, then stops before selecting a generated token. It stores an independent snapshot of the prompt's key/value tensors and next-token logits. Translation reuses that snapshot only if every token of the complete input matches. Appending, deleting, or editing words requires a new complete prefill; partial prefixes are never reused. Generated Kashmiri never enters this cache. There are at most four page sessions with a two-minute TTL. Speculative prefill yields to translation work and falls back to ordinary inference if unavailable.
-
-The earlier incremental prefix cache was rejected after broad regression testing found changed translations, including the user's reported hungry/annoyed sentence. Identical weights and beam settings alone did not preserve the outputs of that computation path. The replacement moves the same complete prompt computation earlier in time instead. This can hide input processing behind typing, but does not eliminate the cost of generating the Kashmiri output.
-
-The page cancels obsolete fetches and ignores stale responses. The server monitors disconnects, stops an obsolete generation at the next decoding step, and serializes GPU work. It bounds pending requests to eight and caches the latest 128 successful passages in memory. Ctrl+Enter immediately translates the current passage. Input is limited to 500 characters to keep requests manageable on a laptop.
-
-On the validated Windows/Ada GPU configuration, the decoder uses a native NF4 kernel and exact-length CUDA graphs. It preserves the original BF16 operands, sequential accumulation, four beams, and CPU FP32 diacritizer. All 238 quantized projections are checked against the original implementation during startup. A lossless weight-layout permutation keeps one compressed copy; prefill reconstructs the original bytes. At most 52 decoder positions are captured at startup, with two prefill graphs and four shapes per beam helper. Other positions run without a graph, and contexts beyond the 128-token buffer continue through the dynamic cache without shortening the input or output. Graph preparation adds startup time. On hybrid Windows CPUs, this process uses physical performance cores while retaining four CPU threads.
-
-Before inference, the server checks for 1.5 GiB of free GPU memory. If necessary, it releases optional graphs and prompt caches. If memory is still too tight, it returns a retryable response before starting generation. This reduces OOM risk; it cannot prevent another application from allocating GPU memory concurrently. The conversion-cache fallback is limited to 1000 MiB and leaves 2 GiB before graph capture.
-
-Other local GPU models share this budget. For example, OpenWhispr's GPU dictation
-service used about 1.9 GiB on this laptop and left too little headroom for
-translation. Temporarily stopping that model service restored translation.
-Keep other GPU workloads within the available memory; the server deliberately
-keeps its safety threshold instead of risking an OOM. Graph cleanup also releases
-the projection output tensors that could otherwise retain retired allocator segments.
-
-The native kernel requires the CUDA Toolkit's `nvcc` and Visual Studio C++ tools already installed locally; it builds into ignored `artifacts/native/`. No compiler is downloaded automatically. Unsupported configurations or setup failure use the earlier bounded conversion-cache/MLP-graph backend. Set `KOSHUR_NATIVE_DECODE=0` to select that backend, `KOSHUR_OPTIMIZE_EXECUTION=0` for stock inference, or `KOSHUR_PERFORMANCE_CORES=0` for normal Windows CPU scheduling. See [measurements and remaining work](INFERENCE_NOTES.md). Matching the stock translations and maintaining GPU headroom take priority over speed; the working latency target is around 1.5 seconds for ordinary sentences, with longer passages taking longer.
+Restart `start.cmd` after setup. Both voices run in a separate CPU-only process, with no GPU memory use. Model downloads total about 307 MB. `requirements-tts-lock.txt` records the tested environment; use `--extra-index-url https://download.pytorch.org/whl/cpu` when installing it. Upstream source licenses and notices are retained in `vendor/bolbosh/`.
 
 ## API
 
@@ -254,43 +91,12 @@ The native kernel requires the CUDA Toolkit's `nvcc` and Visual Studio C++ tools
 FastAPI serves the page and API from the same origin. No browser API keys or external inference service. Typed text goes to the local server and remains in its in-memory cache until eviction/restart; the application does not write passages to a database, local storage, or access logs. Only the bigger-text preference is stored in the browser. Hugging Face is contacted to download model files. Model caches and environments are ignored by Git.
 
 The service binds to **127.0.0.1** by default. Optional laptop sharing uses the
-bounded gateway described above. Serving the static files alone cannot run the
+included bounded gateway. Serving the static files alone cannot run the
 models. Use one Uvicorn model worker per GPU to avoid loading duplicate copies.
 No paid infrastructure is provisioned by this project. A standard CPU VPS alone
 cannot run this application's CUDA translator.
 
 Cloud migration is not yet implemented or benchmarked. The fastest native decoder is currently specific to **Windows/Ada GPUs**; moving to Linux or another GPU requires choosing the compatible path and repeating output-equality and latency tests. Cold-starting a cloud model also adds loading time. Keep four-beam decoding and the CPU diacritizer when comparing deployments.
-
-## Checks
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-.\.venv\Scripts\python.exe -m pytest -q
-node --check web/app.js
-node tests/test_typing.mjs
-node tests/test_speech.mjs
-```
-
-API tests use a stand-in engine to check validation, readiness, cache limits, error recovery, and cancellation without GPU downloads. They do not measure translation quality. For an actual model smoke test, start normally and submit an English sentence through the page or API.
-
-The initial seven-case GPU smoke check missed a regression. The subsequent 161-input audit found that the old incremental typing cache changed 15 translations, including the user's reported example. That path has been removed. The native decoder with fresh prompts and the replacement complete-prompt cache each matched all 161 stock token sequences, drafts, and diacritized outputs. This is regression coverage, not a guarantee for all possible inputs or a human translation-quality score. See the latest section of [INFERENCE_NOTES.md](INFERENCE_NOTES.md) and the local `artifacts/accuracy-summary.md` report.
-
-The expanded audit added **400 distinct inputs**, producing **1,200 translations** across stock inference, optimized fresh prompts, and optimized prepared prompts. Both optimized paths matched all 400 reference token sequences, drafts and diacritized outputs, with no errors or CUDA OOMs. The median translation times were 5.13 s, 1.23 s and 0.89 s respectively; prepared-prompt timing excludes preparation. Longer passages remained slower (optimized P95 about 11.6 s). These results apply to the tested hardware and software, not every device or possible input.
-
-Python tests cover API validation, exact-input invalidation, isolation, cancellation,
-memory-pressure handling, bounded CPU speech, and the sharing gateway's route,
-body, origin, rate and concurrency limits. JavaScript checks cover typing, saved
-examples, speech loading/double-click protection, replay, stopping, errors and
-stale responses. Browser checks cover the page and voice playback. Six real CPU
-speech samples passed WAV checks; pronunciation quality still needs human review.
-
-With the app stopped, run `python scripts/benchmark_prefix.py` using the project environment for fresh-versus-cached four-beam comparisons. Results are written under the ignored `artifacts/` directory. `scripts/benchmark_latency.py` profiles the pipeline; its optional `--include-greedy` flag is an exploratory output comparison and never changes app settings. Production continues to use four beams and CPU FP32 diacritization.
-
-For repeatable native-backend checks, stop the service and run `python scripts/create_native_reference.py`, then `python scripts/verify_native_backend.py`. These compare complete token sequences and both text outputs for 13 passages, typing-time prefix reuse, in-flight cancellation, and continuation past the graph cache limit. They perform new inference rather than looking up completed translations.
-
-For the broader audit, run `scripts/compare_accuracy.py --backend stock`, then `--backend native`, then `--backend native --typing --report accuracy-native-complete-prompt.json --fail-fast`, using the project Python environment. Run `scripts/stress_accuracy_memory.py` for near-limit inputs, cancellation and controlled memory-pressure recovery. Keep only one GPU benchmark or web service running at a time. `scripts/summarize_accuracy.py` renders the saved comparisons into Markdown.
-
-To reproduce the expanded 400-input audit, stop the local server, run `scripts/build_expanded_corpus.py`, then `scripts/run_expanded_accuracy.py`, then `scripts/summarize_expanded_accuracy.py` using `.venv/Scripts/python.exe`. The runner restores the web server afterwards. Raw outputs, timing reports, WAV samples and generated native binaries stay in the ignored `artifacts/` directory; do not start a second GPU model beside the web service.
 
 ## Repository layout
 
