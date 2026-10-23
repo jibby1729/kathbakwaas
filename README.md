@@ -88,7 +88,15 @@ Restart `start.cmd` after setup. Both voices run in a separate CPU-only process,
 - `POST /api/speech` with `{ "text": "کٲشُر", "voice": "male" }` (or `female`): mono 22,050 Hz PCM WAV; max 1,500 characters, 429 when speech is busy. Speech failures do not discard the translation.
 - 422 for invalid input/incomplete output, 503 while unavailable, 429 when the inference queue is full. Model startup and inference failures appear in the server terminal.
 
-FastAPI serves the page and API from the same origin. No browser API keys or external inference service. Typed text goes to the local server and remains in its in-memory cache until eviction/restart; the application does not write passages to a database, local storage, or access logs. Only the bigger-text preference is stored in the browser. Hugging Face is contacted to download model files. Model caches and environments are ignored by Git.
+FastAPI serves the page and API from the same origin. No browser API keys or external inference service. Up to **4,096 completed translations** are cached in system RAM and saved in `.hosting/translations.sqlite3`, so the cache survives restarts. This stores the submitted English and both Kashmiri outputs on the server's disk; the operator can read them. The least recently used translations are evicted from both caches. Pipeline changes invalidate saved results. The database is ignored by Git and has no public download or API route. Only the bigger-text preference is stored in the browser. Hugging Face is contacted to download model files.
+
+Double-click `cache.cmd` to see saved sentences and translations, most recently used first. To export a readable UTF-8 JSON snapshot, run:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/cache.py --export .hosting/translations.json
+```
+
+Exports are snapshots and may retain entries after cache eviction; export again to refresh them. Keep exports under `.hosting/` to exclude them from Git. `KOSHUR_CACHE_DB` overrides the database path; an empty value disables disk persistence. Storage errors fall back to RAM caching. Preview mode does not use disk persistence unless a database path is explicitly supplied. Existing RAM entries from an older running server cannot be recovered by this command; persistence starts when the updated backend starts. Analytics still omit sentence text.
 
 The service binds to **127.0.0.1** by default. Optional laptop sharing uses the
 included bounded gateway. Serving the static files alone cannot run the

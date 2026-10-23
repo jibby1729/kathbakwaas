@@ -16,10 +16,12 @@ from starlette.datastructures import MutableHeaders
 from .engine import TranslationCancelled, TranslationEngine
 from .gpu_memory import GPUMemoryBusy
 from .speech import SpeechBusy, SpeechService
+from .translation_cache import TranslationCacheStore, cache_signature
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_CHARS = 500
-CACHE_SIZE = 128
+# Completed translations live in CPU RAM and are evicted least recently used first.
+CACHE_SIZE = 4096
 logger = logging.getLogger(__name__)
 
 
@@ -54,6 +56,13 @@ async def lifespan(app):
     app.state.engine = TranslationEngine()
     app.state.inference_lock = asyncio.Lock()
     app.state.cache = OrderedDict()
+    app.state.cache_store = None
+    # Preview/tests stay isolated unless an explicit test database is provided.
+    cache_path = os.getenv('KOSHUR_CACHE_DB')
+    if cache_path != '' and (cache_path or os.getenv('KOSHUR_SKIP_MODEL_LOAD') != '1'):
+        app.state.cache_store = TranslationCacheStore(
+            cache_path or ROOT / '.hosting' / 'translations.sqlite3', cache_signature(ROOT))
+        app.state.cache = app.state.cache_store.load(CACHE_SIZE)
     app.state.pending = 0
     app.state.speech = SpeechService()
     loader = None
@@ -79,6 +88,8 @@ async def lifespan(app):
     if loader:
         await loader
     await app.state.speech.close()
+    if app.state.cache_store:
+        app.state.cache_store.close()
 
 
 class SecurityHeadersMiddleware:
@@ -135,6 +146,8 @@ async def translate(body: TranslateRequest, request: Request):
     cache = app.state.cache
     if body.text in cache:
         cache.move_to_end(body.text)
+        if app.state.cache_store:
+            app.state.cache_store.touch(body.text)
         return {**cache[body.text], "cached": True}
     # One GPU worker; bound pending requests to avoid a growing inference queue.
     if app.state.pending >= 8:
@@ -158,6 +171,8 @@ async def translate(body: TranslateRequest, request: Request):
             # A preceding request may have populated the cache while we waited.
             if body.text in cache:
                 cache.move_to_end(body.text)
+                if app.state.cache_store:
+                    app.state.cache_store.touch(body.text)
                 return {**cache[body.text], "cached": True}
             options = {"session": body.session_id} if body.session_id else {}
             worker = asyncio.create_task(asyncio.to_thread(engine.translate, body.text, cancelled, **options))
@@ -174,6 +189,8 @@ async def translate(body: TranslateRequest, request: Request):
             cache[body.text] = result
             while len(cache) > CACHE_SIZE:
                 cache.popitem(last=False)
+            if app.state.cache_store:
+                app.state.cache_store.put(body.text, result, CACHE_SIZE)
             return {**result, "cached": False}
     except TranslationCancelled:
         return JSONResponse({"detail": "Translation cancelled."}, status_code=499)

@@ -46,7 +46,8 @@ def test_invalid_text_is_rejected(client, text):
     assert client.post("/api/translate", json={"text": text}).status_code == 422
 
 
-def test_pipeline_response_and_bounded_cache(client):
+def test_pipeline_response_and_bounded_cache(client, monkeypatch):
+    monkeypatch.setattr("app.main.CACHE_SIZE", 3)
     engine = FakeEngine()
     app.state.engine = engine
     first = client.post("/api/translate", json={"text": " Hello "}).json()
@@ -56,9 +57,13 @@ def test_pipeline_response_and_bounded_cache(client):
     assert first["cached"] is False
     assert again["cached"] is True
     assert engine.calls == 1
-    for index in range(130):
+    for index in range(2):
         client.post("/api/translate", json={"text": f"Sentence {index}"})
-    assert len(app.state.cache) == 128
+    assert client.post("/api/translate", json={"text": "Hello"}).json()["cached"] is True
+    client.post("/api/translate", json={"text": "Sentence 2"})
+    assert len(app.state.cache) == 3
+    assert "Hello" in app.state.cache
+    assert "Sentence 0" not in app.state.cache
 
 
 def test_queue_is_bounded(client):
